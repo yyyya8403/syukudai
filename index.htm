@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>管理画面 - 宿題管理</title>
+    <title>宿題管理システム</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -22,19 +22,21 @@
             width: 90%;
             max-width: 600px;
         }
-        .input-area, .submitted-assignments {
+        .hidden {
+            display: none;
+        }
+        .container {
             background-color: white;
             padding: 1.5rem;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            margin-bottom: 2rem;
         }
         label {
             display: block;
             margin-bottom: 0.5rem;
             font-weight: bold;
         }
-        input[type="text"], input[type="date"], button {
+        input[type="text"], input[type="date"], input[type="password"], button {
             width: 100%;
             padding: 0.75rem;
             margin-bottom: 1rem;
@@ -47,24 +49,43 @@
             cursor: pointer;
             border: none;
         }
-        .submitted-assignments ul {
+        button.disabled {
+            background-color: #ddd;
+            cursor: not-allowed;
+        }
+        .assignment-list ul {
             list-style-type: none;
             padding: 0;
         }
-        .submitted-assignments li {
-            margin-bottom: 0.5rem;
+        .assignment-list li {
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>宿題管理 - 管理画面</h1>
+    <h1>宿題管理システム</h1>
 </header>
 
 <main>
-    <div class="input-area">
-        <h2>新しい宿題を追加</h2>
+    <!-- ログイン画面 -->
+    <div id="login" class="container">
+        <h2>ログイン</h2>
+        <form id="loginForm">
+            <label for="password">パスワード:</label>
+            <input type="password" id="password" required>
+            <button type="submit">管理画面にログイン</button>
+        </form>
+        <button id="goToUserPage">ユーザー画面に移動</button>
+    </div>
+
+    <!-- 管理画面 -->
+    <div id="admin" class="container hidden">
+        <h2>管理画面</h2>
         <form id="assignmentForm">
             <label for="assignmentName">宿題の内容:</label>
             <input type="text" id="assignmentName" required>
@@ -72,57 +93,90 @@
             <input type="date" id="dueDate" required>
             <button type="submit">宿題を追加</button>
         </form>
+        <div class="submitted-assignments">
+            <h2>提出された宿題</h2>
+            <ul id="submittedList"></ul>
+        </div>
     </div>
 
-    <div class="submitted-assignments">
-        <h2>提出された宿題</h2>
-        <ul id="submittedList"></ul>
+    <!-- ユーザー画面 -->
+    <div id="user" class="container hidden">
+        <h2>ユーザー画面</h2>
+        <div class="input-area">
+            <h3>ユーザー番号を入力</h3>
+            <form id="userNumberForm">
+                <label for="userNumber">番号:</label>
+                <input type="text" id="userNumber" required>
+                <button type="submit">送信</button>
+            </form>
+        </div>
+        <div class="assignment-list" id="assignmentList" style="display: none;">
+            <h2>宿題リスト</h2>
+            <ul id="assignments"></ul>
+        </div>
     </div>
 </main>
 
 <script>
-    // Cookieからデータを取得する関数
+    // クッキーからデータを取得する関数
     function getCookie(name) {
-        let cookies = document.cookie.split(';');
-        for (let cookie of cookies) {
-            let [key, value] = cookie.trim().split('=');
-            if (key === name) {
-                return decodeURIComponent(value);
-            }
+        let nameEQ = name + "=";
+        let ca = document.cookie.split(';');
+        for (let i = 0; i < ca.length; i++) {
+            let c = ca[i];
+            while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+            if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
         }
         return null;
     }
 
     // クッキーを設定する関数
-function setCookie(name, value, days) {
-    let expires = "";
-    if (days) {
-        let date = new Date();
-        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-        expires = "expires=" + date.toUTCString();
+    function setCookie(name, value, days) {
+        let expires = "";
+        if (days) {
+            let date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            expires = "expires=" + date.toUTCString();
+        }
+        document.cookie = name + "=" + (value || "") + ";" + expires + ";path=/";
     }
-    document.cookie = name + "=" + (value || "") + ";" + expires + ";path=/";
-}
 
-// クッキーを取得する関数
-function getCookie(name) {
-    let nameEQ = name + "=";
-    let ca = document.cookie.split(';');
-    for (let i = 0; i < ca.length; i++) {
-        let c = ca[i];
-        while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-        if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+    // クッキーを消す関数
+    function eraseCookie(name) {
+        document.cookie = name + '=; Max-Age=-99999999;';
     }
-    return null;
-}
 
-// クッキーを消す関数
-function eraseCookie(name) {
-    document.cookie = name + '=; Max-Age=-99999999;';
-}
+    // ログイン処理
+    const loginForm = document.getElementById('loginForm');
+    loginForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        const password = document.getElementById('password').value;
+        if (password === 'admin123') { // 管理者パスワード
+            document.getElementById('login').classList.add('hidden');
+            document.getElementById('admin').classList.remove('hidden');
+            loadSubmittedAssignments(); // 提出された宿題をロード
+        } else {
+            alert('パスワードが違います');
+        }
+    });
 
-    // 宿題データを保持する配列
-    let assignments = getCookie('assignments') ? JSON.parse(getCookie('assignments')) : [];
+    // ユーザー画面に直接アクセスするためのボタン処理
+    const goToUserPage = document.getElementById('goToUserPage');
+    goToUserPage.addEventListener('click', function() {
+        document.getElementById('login').classList.add('hidden');
+        document.getElementById('user').classList.remove('hidden');
+    });
+
+    // ユーザー画面に切り替え
+    const userNumberForm = document.getElementById('userNumberForm');
+    userNumberForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        const userNumber = document.getElementById('userNumber').value;
+        setCookie('userNumber', userNumber, 30);
+        document.getElementById('login').classList.add('hidden');
+        document.getElementById('user').classList.remove('hidden');
+        loadAssignments(userNumber); // ユーザーの宿題リストをロード
+    });
 
     // 宿題を追加
     const assignmentForm = document.getElementById('assignmentForm');
@@ -130,21 +184,56 @@ function eraseCookie(name) {
         event.preventDefault();
         const name = document.getElementById('assignmentName').value;
         const dueDate = document.getElementById('dueDate').value;
+        let assignments = getCookie('assignments') ? JSON.parse(getCookie('assignments')) : [];
         assignments.push({ name, dueDate });
-        setCookie('assignments', JSON.stringify(assignments), 30); // 30日間保存
+        setCookie('assignments', JSON.stringify(assignments), 30);
         assignmentForm.reset();
         alert('宿題を追加しました');
-        location.reload(); // ページ再読み込み
+        loadAssignments(); // 管理画面に宿題リストをロード
     });
 
-    // 提出された宿題の表示
-    const submittedList = document.getElementById('submittedList');
-    const submittedAssignments = getCookie('submitted') ? JSON.parse(getCookie('submitted')) : [];
-    submittedAssignments.forEach(submission => {
-        const li = document.createElement('li');
-        li.textContent = `ユーザー番号 ${submission.userNumber} が "${submission.assignment}" を提出しました。`;
-        submittedList.appendChild(li);
-    });
+    // 提出された宿題を表示
+    function loadSubmittedAssignments() {
+        const submittedList = document.getElementById('submittedList');
+        const submittedAssignments = getCookie('submitted') ? JSON.parse(getCookie('submitted')) : [];
+        submittedList.innerHTML = '';
+        submittedAssignments.forEach(submission => {
+            const li = document.createElement('li');
+            li.textContent = `ユーザー番号 ${submission.userNumber} が "${submission.assignment}" を提出しました。`;
+            submittedList.appendChild(li);
+        });
+    }
+
+    // 宿題リストを表示
+    function loadAssignments(userNumber) {
+        const assignments = getCookie('assignments') ? JSON.parse(getCookie('assignments')) : [];
+        const submittedAssignments = getCookie('submitted') ? JSON.parse(getCookie('submitted')) : [];
+        const submittedSet = new Set(submittedAssignments.map(sub => sub.assignment));
+
+        const assignmentsUl = document.getElementById('assignments');
+        assignmentsUl.innerHTML = '';
+        const assignmentList = document.getElementById('assignmentList');
+        assignmentList.style.display = 'block';
+
+        assignments.forEach(assignment => {
+            const li = document.createElement('li');
+            li.innerHTML = `
+                ${assignment.name} - ${assignment.dueDate} 
+                <button ${submittedSet.has(assignment.name) ? 'disabled class="disabled"' : ''} 
+                        onclick="submitAssignment('${assignment.name}', '${userNumber}')">
+                    ${submittedSet.has(assignment.name) ? '提出済み' : '提出'}
+                </button>`;
+            assignmentsUl.appendChild(li);
+        });
+    }
+
+    // 宿題を提出する関数
+    function submitAssignment(assignmentName, userNumber) {
+        let submittedAssignments = getCookie('submitted') ? JSON.parse(getCookie('submitted')) : [];
+        submittedAssignments.push({ userNumber, assignment: assignmentName });
+        setCookie('submitted', JSON.stringify(submittedAssignments), 30);
+        loadAssignments(userNumber); // 提出後にリストを再読み込みしてボタン状態を更新
+    }
 </script>
 
 </body>
