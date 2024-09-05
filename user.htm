@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ユーザー画面 - 宿題提出</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #333;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        main {
+            margin: 2rem auto;
+            width: 90%;
+            max-width: 600px;
+        }
+        .input-area, .assignment-list {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+        input[type="text"], button {
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            border: none;
+        }
+        button.disabled {
+            background-color: #ddd;
+            cursor: not-allowed;
+        }
+        .assignment-list ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .assignment-list li {
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>宿題提出 - ユーザー画面</h1>
+</header>
+
+<main>
+    <div class="input-area">
+        <h2>ユーザー番号を入力</h2>
+        <form id="userNumberForm">
+            <label for="userNumber">番号:</label>
+            <input type="text" id="userNumber" required>
+            <button type="submit">送信</button>
+        </form>
+    </div>
+
+    <div class="assignment-list" id="assignmentList" style="display: none;">
+        <h2>宿題リスト</h2>
+        <ul id="assignments"></ul>
+    </div>
+</main>
+
+<script>
+    // Cookieからデータを取得する関数
+    function getCookie(name) {
+        let cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            let [key, value] = cookie.trim().split('=');
+            if (key === name) {
+                return decodeURIComponent(value);
+            }
+        }
+        return null;
+    }
+
+    // Cookieを設定する関数
+    function setCookie(name, value, days) {
+        let date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        document.cookie = `${name}=${encodeURIComponent(value)};expires=${date.toUTCString()};path=/`;
+    }
+
+    const userNumberForm = document.getElementById('userNumberForm');
+    const assignmentList = document.getElementById('assignmentList');
+    const assignmentsUl = document.getElementById('assignments');
+
+    // ユーザー番号の入力
+    userNumberForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        const userNumber = document.getElementById('userNumber').value;
+        setCookie('userNumber', userNumber, 30);
+        loadAssignments(userNumber);
+    });
+
+    // 宿題リストの表示
+    function loadAssignments(userNumber) {
+        const assignments = getCookie('assignments') ? JSON.parse(getCookie('assignments')) : [];
+        const submittedAssignments = getCookie('submitted') ? JSON.parse(getCookie('submitted')) : [];
+        const submittedSet = new Set(submittedAssignments.map(sub => sub.assignment));
+
+        assignmentsUl.innerHTML = '';
+        assignmentList
+        .style.display = 'block';
+
+        assignments.forEach(assignment => {
+            const li = document.createElement('li');
+            li.innerHTML = `
+                ${assignment.name} - ${assignment.dueDate} 
+                <button ${submittedSet.has(assignment.name) ? 'disabled class="disabled"' : ''} 
+                        onclick="submitAssignment('${assignment.name}', '${userNumber}')">
+                    ${submittedSet.has(assignment.name) ? '提出済み' : '提出'}
+                </button>`;
+            assignmentsUl.appendChild(li);
+        });
+    }
+
+    // 宿題を提出する関数
+    function submitAssignment(assignmentName, userNumber) {
+        let submittedAssignments = getCookie('submitted') ? JSON.parse(getCookie('submitted')) : [];
+        submittedAssignments.push({ userNumber, assignment: assignmentName });
+        setCookie('submitted', JSON.stringify(submittedAssignments), 30); // 30日間保存
+        loadAssignments(userNumber); // 提出後にリストを再読み込みしてボタン状態を更新
+    }
+</script>
+
+</body>
+</html>
