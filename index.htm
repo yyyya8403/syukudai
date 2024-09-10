@@ -56,16 +56,52 @@
             border-radius: 4px;
             border: 1px solid #ddd;
         }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            cursor: pointer;
-            border: none;
-        }
-        button.disabled {
-            background-color: #ddd;
-            cursor: not-allowed;
-        }
+/* ボタンの基本スタイル */
+button {
+    position: relative;
+    overflow: hidden; /* 擬似要素がボタンからはみ出さないようにする */
+    background-color: #4CAF50; /* ボタンの背景色 */
+    color: white; /* ボタンの文字色 */
+    cursor: pointer;
+    border: 2px solid #4CAF50; /* ボタンの枠 */
+    border-radius: 4px;
+    padding: 0.75rem;
+    transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+    font-size: 16px; /* フォントサイズの調整 */
+}
+
+/* 擬似要素でアニメーション用の背景を作成 */
+button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.3); /* 背景色のスライド効果 */
+    transition: left 0.3s ease;
+    z-index: 0; /* ボタンのテキストの後ろに表示する */
+}
+
+/* ボタンのテキストが擬似要素の上に表示されるようにする */
+button span {
+    position: relative;
+    z-index: 1;
+}
+
+/* ホバー時のスタイル */
+button:hover::before {
+    left: 100%;
+}
+
+/* ホバー時のスタイルでボタンの色を反転し、枠の色も変更 */
+button:hover {
+    background-color: white; /* ホバー時の背景色 */
+    color: #4CAF50; /* ホバー時の文字色 */
+    border-color: #4CAF50; /* ホバー時の枠の色 */
+}
+
+
         .assignment-list ul {
             list-style-type: none;
             padding: 0;
@@ -76,6 +112,12 @@
             justify-content: space-between;
             align-items: center;
         }
+        button.disabled {
+    background-color: #ddd;
+    cursor: not-allowed;
+    color: #666;
+}
+
     </style>
     
 </head>
@@ -113,7 +155,6 @@
             <ul id="submittedList"></ul>
         </div>
     </div>
-
     <!-- ユーザー画面 -->
     <div id="user" class="container hidden">
         <h2>ユーザー画面</h2>
@@ -134,37 +175,34 @@
 </main>
 
 <script>
-    // クッキーからデータを取得する関数
-    function getCookie(name) {
-        let nameEQ = name + "=";
-        let ca = document.cookie.split(';');
-        for (let i = 0; i < ca.length; i++) {
-            let c = ca[i];
-            while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-            if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
-        }
-        return null;
+
+
+    // ユーザー画面に直接アクセスするためのボタン処理
+    const goToUserPage = document.getElementById('goToUserPage');
+    goToUserPage.addEventListener('click', function() {
+        document.getElementById('login').classList.add('hidden');
+        document.getElementById('user').classList.remove('hidden');
+    });
+
+    // ローカルストレージからデータを取得する関数
+    function getLocalStorage(name) {
+        const data = localStorage.getItem(name);
+        return data ? JSON.parse(data) : null;
     }
 
-    // クッキーを設定する関数
-    function setCookie(name, value, days) {
-        let expires = "";
-        if (days) {
-            let date = new Date();
-            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-            expires = "expires=" + date.toUTCString();
-        }
-        document.cookie = name + "=" + (value || "") + ";" + expires + ";path=/";
+    // ローカルストレージにデータを設定する関数
+    function setLocalStorage(name, value) {
+        localStorage.setItem(name, JSON.stringify(value));
     }
 
-    // クッキーを消す関数
-    function eraseCookie(name) {
-        document.cookie = name + '=; Max-Age=-99999999;';
+    // ローカルストレージからデータを消す関数
+    function eraseLocalStorage(name) {
+        localStorage.removeItem(name);
     }
 
     // ページが読み込まれたときにユーザー番号をチェック
     function checkUserNumber() {
-        const userNumber = getCookie('userNumber');
+        const userNumber = getLocalStorage('userNumber');
         if (userNumber) {
             document.getElementById('login').classList.add('hidden');
             document.getElementById('user').classList.remove('hidden');
@@ -188,19 +226,12 @@
         }
     });
 
-    // ユーザー画面に直接アクセスするためのボタン処理
-    const goToUserPage = document.getElementById('goToUserPage');
-    goToUserPage.addEventListener('click', function() {
-        document.getElementById('login').classList.add('hidden');
-        document.getElementById('user').classList.remove('hidden');
-    });
-
     // ユーザー画面に切り替え
     const userNumberForm = document.getElementById('userNumberForm');
     userNumberForm.addEventListener('submit', function(event) {
         event.preventDefault();
         const userNumber = document.getElementById('userNumber').value;
-        setCookie('userNumber', userNumber, 30);
+        setLocalStorage('userNumber', userNumber);
         document.getElementById('login').classList.add('hidden');
         document.getElementById('user').classList.remove('hidden');
         loadAssignments(userNumber); // ユーザーの宿題リストをロード
@@ -212,9 +243,9 @@
         event.preventDefault();
         const name = document.getElementById('assignmentName').value;
         const dueDate = document.getElementById('dueDate').value;
-        let assignments = getCookie('assignments') ? JSON.parse(getCookie('assignments')) : [];
+        let assignments = getLocalStorage('assignments') || [];
         assignments.push({ name, dueDate });
-        setCookie('assignments', JSON.stringify(assignments), 30);
+        setLocalStorage('assignments', assignments);
         assignmentForm.reset();
         alert('宿題を追加しました');
         loadAssignments(); // 管理画面に宿題リストをロード
@@ -223,7 +254,7 @@
     // 提出された宿題を表示
     function loadSubmittedAssignments() {
         const submittedList = document.getElementById('submittedList');
-        const submittedAssignments = getCookie('submitted') ? JSON.parse(getCookie('submitted')) : [];
+        const submittedAssignments = getLocalStorage('submitted') || [];
         submittedList.innerHTML = '';
         submittedAssignments.forEach(submission => {
             const li = document.createElement('li');
@@ -234,8 +265,8 @@
 
     // 宿題リストを表示
     function loadAssignments(userNumber) {
-        const assignments = getCookie('assignments') ? JSON.parse(getCookie('assignments')) : [];
-        const submittedAssignments = getCookie('submitted') ? JSON.parse(getCookie('submitted')) : [];
+        const assignments = getLocalStorage('assignments') || [];
+        const submittedAssignments = getLocalStorage('submitted') || [];
         const submittedSet = new Set(submittedAssignments.map(sub => sub.assignment));
 
         const assignmentsUl = document.getElementById('assignments');
@@ -257,18 +288,18 @@
 
     // 宿題を提出する関数
     function submitAssignment(assignmentName, userNumber) {
-        let submittedAssignments = getCookie('submitted') ? JSON.parse(getCookie('submitted')) : [];
+        let submittedAssignments = getLocalStorage('submitted') || [];
         submittedAssignments.push({ userNumber, assignment: assignmentName });
-        setCookie('submitted', JSON.stringify(submittedAssignments), 30);
+        setLocalStorage('submitted', submittedAssignments);
         loadAssignments(userNumber); // 提出後にリストを再読み込みしてボタン状態を更新
     }
 
     // 管理者のログアウト処理
     const logoutAdmin = document.getElementById('logoutAdmin');
     logoutAdmin.addEventListener('click', function() {
-        eraseCookie('userNumber');
-        eraseCookie('assignments');
-        eraseCookie('submitted');
+        eraseLocalStorage('userNumber');
+        eraseLocalStorage('assignments');
+        eraseLocalStorage('submitted');
         document.getElementById('admin').classList.add('hidden');
         document.getElementById('login').classList.remove('hidden');
     });
@@ -276,13 +307,23 @@
     // ユーザーのログアウト処理
     const logoutUser = document.getElementById('logoutUser');
     logoutUser.addEventListener('click', function() {
-        eraseCookie('userNumber');
+        eraseLocalStorage('userNumber');
         document.getElementById('user').classList.add('hidden');
         document.getElementById('login').classList.remove('hidden');
     });
 
+    // 一定間隔で宿題リストを更新
+        setInterval(() => {
+    const userNumber = getCookie('userNumber');
+    if (userNumber) {
+        loadAssignments(userNumber);
+     }
+        }, 60000); // 1分ごとに更新
+
     // ページロード時にユーザー番号をチェック
     window.onload = checkUserNumber;
+</script>
+
 </script>
 
 </body>
