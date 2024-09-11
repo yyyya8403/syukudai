@@ -173,8 +173,19 @@ button:hover {
         </div>
     </div>
 </main>
-
 <script>
+
+     // 提出された宿題を表示
+     function loadSubmittedAssignments() {
+        const submittedList = document.getElementById('submittedList');
+        const submittedAssignments = getData('submitted') || [];
+        submittedList.innerHTML = '';
+        submittedAssignments.forEach(submission => {
+            const li = document.createElement('li');
+            li.textContent = `ユーザー番号 ${submission.userNumber} が "${submission.assignment}" を提出しました。`;
+            submittedList.appendChild(li);
+        });
+    }
 
 
     // ユーザー画面に直接アクセスするためのボタン処理
@@ -183,6 +194,23 @@ button:hover {
         document.getElementById('login').classList.add('hidden');
         document.getElementById('user').classList.remove('hidden');
     });
+
+
+    
+    // ログイン処理
+    const loginForm = document.getElementById('loginForm');
+    loginForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        const password = document.getElementById('password').value;
+        if (password === 'admin123') { // 管理者パスワード
+            document.getElementById('login').classList.add('hidden');
+            document.getElementById('admin').classList.remove('hidden');
+            loadSubmittedAssignments(); // 提出された宿題をロード
+        } else {
+            alert('パスワードが違います');
+        }
+    });
+
 
     // ローカルストレージからデータを取得する関数
     function getLocalStorage(name) {
@@ -212,68 +240,50 @@ button:hover {
         }
     }
 
-    // ログイン処理
-    const loginForm = document.getElementById('loginForm');
-    loginForm.addEventListener('submit', function(event) {
-        event.preventDefault();
-        const password = document.getElementById('password').value;
-        if (password === 'admin123') { // 管理者パスワード
-            document.getElementById('login').classList.add('hidden');
-            document.getElementById('admin').classList.remove('hidden');
-            loadSubmittedAssignments(); // 提出された宿題をロード
-        } else {
-            alert('パスワードが違います');
-        }
-    });
-
-    // ユーザー画面に切り替え
+    // ユーザー番号を入力して宿題を表示
     const userNumberForm = document.getElementById('userNumberForm');
     userNumberForm.addEventListener('submit', function(event) {
         event.preventDefault();
         const userNumber = document.getElementById('userNumber').value;
-        setLocalStorage('userNumber', userNumber);
+        setLocalStorage('userNumber', userNumber); // LocalStorageに番号を保存
         document.getElementById('login').classList.add('hidden');
         document.getElementById('user').classList.remove('hidden');
         loadAssignments(userNumber); // ユーザーの宿題リストをロード
     });
 
-    // 宿題を追加
+    // 宿題を追加する処理
     const assignmentForm = document.getElementById('assignmentForm');
     assignmentForm.addEventListener('submit', function(event) {
-        event.preventDefault();
+        event.preventDefault();  // ページリロードを防止
         const name = document.getElementById('assignmentName').value;
         const dueDate = document.getElementById('dueDate').value;
-        let assignments = getLocalStorage('assignments') || [];
-        assignments.push({ name, dueDate });
-        setLocalStorage('assignments', assignments);
-        assignmentForm.reset();
-        alert('宿題を追加しました');
-        loadAssignments(); // 管理画面に宿題リストをロード
-    });
+        
+        if (!name || !dueDate) {  // 宿題の名前と期限が入力されているかを確認
+            alert('宿題の内容と期限を入力してください');
+            return;
+        }
 
-    // 提出された宿題を表示
-    function loadSubmittedAssignments() {
-        const submittedList = document.getElementById('submittedList');
-        const submittedAssignments = getLocalStorage('submitted') || [];
-        submittedList.innerHTML = '';
-        submittedAssignments.forEach(submission => {
-            const li = document.createElement('li');
-            li.textContent = `ユーザー番号 ${submission.userNumber} が "${submission.assignment}" を提出しました。`;
-            submittedList.appendChild(li);
-        });
-    }
+        let assignments = getLocalStorage('assignments') || [];  // 既存の宿題データを取得
+        assignments.push({ name, dueDate });  // 新しい宿題を追加
+        setLocalStorage('assignments', assignments);  // 更新された宿題リストをLocalStorageに保存
+
+        assignmentForm.reset();  // フォームをリセット
+        alert('宿題を追加しました');
+        loadAssignments();  // 宿題リストを更新して表示
+    });
 
     // 宿題リストを表示
     function loadAssignments(userNumber) {
-        const assignments = getLocalStorage('assignments') || [];
-        const submittedAssignments = getLocalStorage('submitted') || [];
-        const submittedSet = new Set(submittedAssignments.map(sub => sub.assignment));
+        const assignments = getLocalStorage('assignments') || [];  // LocalStorageから宿題データを取得
+        const submittedAssignments = getLocalStorage('submitted') || [];  // 提出された宿題データ
+        const submittedSet = new Set(submittedAssignments.map(sub => sub.assignment));  // 提出済みの宿題をセットに
 
         const assignmentsUl = document.getElementById('assignments');
-        assignmentsUl.innerHTML = '';
+        assignmentsUl.innerHTML = '';  // 宿題リストをリセット
         const assignmentList = document.getElementById('assignmentList');
-        assignmentList.style.display = 'block';
+        assignmentList.style.display = 'block';  // 宿題リストを表示
 
+        // 宿題リストを表示
         assignments.forEach(assignment => {
             const li = document.createElement('li');
             li.innerHTML = `
@@ -282,7 +292,7 @@ button:hover {
                         onclick="submitAssignment('${assignment.name}', '${userNumber}')">
                     ${submittedSet.has(assignment.name) ? '提出済み' : '提出'}
                 </button>`;
-            assignmentsUl.appendChild(li);
+            assignmentsUl.appendChild(li);  // リストに追加
         });
     }
 
@@ -292,6 +302,23 @@ button:hover {
         submittedAssignments.push({ userNumber, assignment: assignmentName });
         setLocalStorage('submitted', submittedAssignments);
         loadAssignments(userNumber); // 提出後にリストを再読み込みしてボタン状態を更新
+
+        // Google Sheets APIへデータ送信
+        fetch('/submitAssignment', {  // サーバーのエンドポイントを呼び出し
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ userNumber, assignment: assignmentName })  // データをJSONで送信
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('宿題が提出され、スプレッドシートに記録されました。');
+            } else {
+                alert('スプレッドシートへの送信に失敗しました。');
+            }
+        });
     }
 
     // 管理者のログアウト処理
@@ -312,19 +339,10 @@ button:hover {
         document.getElementById('login').classList.remove('hidden');
     });
 
-    // 一定間隔で宿題リストを更新
-        setInterval(() => {
-    const userNumber = getCookie('userNumber');
-    if (userNumber) {
-        loadAssignments(userNumber);
-     }
-        }, 60000); // 1分ごとに更新
-
     // ページロード時にユーザー番号をチェック
     window.onload = checkUserNumber;
 </script>
 
-</script>
 
 </body>
 </html>
