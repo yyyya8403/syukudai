@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>提出フォーム</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    iframe {
+      width: 100%;
+      height: 600px;
+      border: none;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 800px;
+    }
+
+    nav {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: #007bff;
+      font-size: 16px;
+      margin-left: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ナビゲーション -->
+  <nav>
+    <a href="index.html">フォームページ</a>
+    <a href="status.html">提出状況</a> <!-- サブページへのリンク -->
+  </nav>
+
+  <!-- Googleフォームの埋め込み -->
+  <div class="container">
+    <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfeMcYG6W7lqfGpadZhIvoym7voo2bCUcSWjXJxvqmEx9PcEQ/viewform?usp=sf_link"></iframe> <!-- フォームURLをここに -->
+  </div>
+
+</body>
+</html>
