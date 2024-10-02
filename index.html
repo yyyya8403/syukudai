@@ -1,57 +1,68 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>提出フォーム</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f9;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-
-    iframe {
-      width: 100%;
-      height: 600px;
-      border: none;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 800px;
-    }
-
-    nav {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-    }
-
-    nav a {
-      text-decoration: none;
-      color: #007bff;
-      font-size: 16px;
-      margin-left: 20px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>バーコード読み取り</title>
+    <script src="https://unpkg.com/quagga@0.12.1/dist/quagga.min.js"></script>
+    <style>
+        #video-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        canvas, video {
+            width: 100%;
+            display: block;
+        }
+        #result {
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
 
-  <!-- ナビゲーション -->
-  <nav>
-    <a href="index.html">フォームページ</a>
-    <a href="">提出状況</a> <!-- サブページへのリンク -->  <!--status.6-3.htmlにurlを置き換え-->
-  </nav>
+    <div id="video-container">
+        <!-- カメラ映像を表示する領域 -->
+        <canvas id="video" autoplay></canvas>
+    </div>
 
-  <!-- Googleフォームの埋め込み -->
-  <div class="container">
-    <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfeMcYG6W7lqfGpadZhIvoym7voo2bCUcSWjXJxvqmEx9PcEQ/viewform?usp=sf_link"></iframe> <!-- フォームURLをここに -->
-  </div>
+    <div id="result">バーコードをスキャンしてください</div>
+
+    <script>
+        // Quaggaの初期化設定
+        Quagga.init({
+            inputStream: {
+                name: "Live",
+                type: "LiveStream",
+                target: document.querySelector('#video'), // カメラ映像を表示するcanvas要素をターゲットに設定
+                constraints: {
+                    width: 640,
+                    height: 480,
+                    facingMode: "environment" // リアカメラを使用
+                }
+            },
+            decoder: {
+                readers: ["code_128_reader", "ean_reader", "ean_8_reader", "code_39_reader", "upc_reader"] // 読み取るバーコードの種類
+            }
+        }, function(err) {
+            if (err) {
+                console.log(err);
+                return;
+            }
+            Quagga.start(); // バーコードの読み取りを開始
+        });
+
+        // バーコードが検出されたら結果を表示
+        Quagga.onDetected(function(data) {
+            let code = data.codeResult.code;
+            document.getElementById('result').innerText = `検出されたバーコード: ${code}`;
+            Quagga.stop(); // 検出したらストップ
+        });
+    </script>
 
 </body>
 </html>
