@@ -6,61 +6,127 @@
     <title>バーコード読み取り</title>
     <script src="https://unpkg.com/quagga@0.12.1/dist/quagga.min.js"></script>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
         #video-container {
+            position: relative;
             width: 100%;
             max-width: 600px;
             margin: 0 auto;
         }
-        canvas, video {
+
+        video {
             width: 100%;
-            display: block;
+            height: auto;
         }
+
+        /* 読み取り枠のスタイル */
+        #overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 4px dashed red;
+            box-sizing: border-box;
+            width: 70%; /* 読み取り枠を小さくして精度を上げる */
+            height: 40%;
+        }
+
         #result {
-            font-size: 20px;
-            font-weight: bold;
             text-align: center;
             margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        /* 読み取り成功時のアニメーション */
+        body.flash {
+            background-color: #4CAF50; /* 成功時の色 */
+            transition: background-color 0.5s ease;
         }
     </style>
 </head>
 <body>
 
     <div id="video-container">
-        <!-- カメラ映像を表示する領域 -->
-        <canvas id="video" autoplay></canvas>
+        <video id="video" autoplay playsinline></video>
+        <!-- 読み取り枠を表示 -->
+        <div id="overlay"></div>
     </div>
-
     <div id="result">バーコードをスキャンしてください</div>
 
+    <!-- 読み取り音 -->
+    <audio id="beep" src="https://www.soundjay.com/button/beep-07.wav"></audio>
+
     <script>
-        // Quaggaの初期化設定
+        const videoElement = document.getElementById('video');
+        const beepSound = document.getElementById('beep');
+        
+        // カメラ映像を表示する処理
+        const constraints = {
+            video: {
+                width: { ideal: 1280 }, // カメラ解像度を高める
+                height: { ideal: 720 }, // 解像度を720pに設定
+                facingMode: "environment" // リアカメラを使用
+            }
+        };
+
+        // カメラ映像を取得してビデオ要素に表示
+        navigator.mediaDevices.getUserMedia(constraints)
+            .then(function(stream) {
+                videoElement.srcObject = stream;
+            })
+            .catch(function(error) {
+                console.error("カメラにアクセスできませんでした:", error);
+                document.getElementById('result').innerText = "カメラのアクセスに失敗しました: " + error.message;
+            });
+
+        // QuaggaJSを使ってバーコードを読み取る処理
         Quagga.init({
             inputStream: {
                 name: "Live",
                 type: "LiveStream",
-                target: document.querySelector('#video'), // カメラ映像を表示するcanvas要素をターゲットに設定
+                target: document.querySelector('#video'), // カメラ映像をターゲットにする
                 constraints: {
-                    width: 640,
-                    height: 480,
-                    facingMode: "environment" // リアカメラを使用
-                }
+                    width: 1280, // QuaggaJSでも高解像度を指定
+                    height: 720,
+                    facingMode: "environment", // リアカメラを使用
+                },
+            },
+            locator: {
+                patchSize: "medium", // 読み取り精度を上げるため、パッチサイズを調整
+                halfSample: false // サンプリング精度を高くする
             },
             decoder: {
                 readers: ["code_128_reader", "ean_reader", "ean_8_reader", "code_39_reader", "upc_reader"] // 読み取るバーコードの種類
-            }
+            },
+            locate: true // バーコードの位置を検出する機能を有効にする
         }, function(err) {
             if (err) {
                 console.log(err);
                 return;
             }
-            Quagga.start(); // バーコードの読み取りを開始
+            Quagga.start(); // QuaggaJSによるバーコード読み取りを開始
         });
 
-        // バーコードが検出されたら結果を表示
+        // バーコードが検出された時の処理
         Quagga.onDetected(function(data) {
-            let code = data.codeResult.code;
+            const code = data.codeResult.code;
             document.getElementById('result').innerText = `検出されたバーコード: ${code}`;
-            Quagga.stop(); // 検出したらストップ
+
+            // ビープ音を再生
+            beepSound.play();
+
+            // 読み取り成功のアニメーション（背景色のフラッシュ）
+            document.body.classList.add('flash');
+            setTimeout(function() {
+                document.body.classList.remove('flash');
+            }, 500); // 0.5秒間フラッシュ
+
+            // Quaggaを停止（1回だけ読み取る場合）
+            Quagga.stop();
         });
     </script>
 
