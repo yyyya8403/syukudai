@@ -91,12 +91,14 @@
         <div id="result">バーコードをスキャンしてください</div>
     </div>
 
-    <!-- 読み取り音 -->
-    <audio id="beep" src="https://www.soundjay.com/button/beep-07.wav"></audio>
+    <!-- セルフレジ風の読み取り音 -->
+    <audio id="beep" src="https://soundeffect-lab.info/sound/button/mp3/decision35.mp3"></audio>
 
     <script>
         const videoElement = document.getElementById('video');
         const beepSound = document.getElementById('beep');
+        const resultElement = document.getElementById('result');
+        const spreadsheetUrl = "https://script.google.com/macros/s/AKfycbzQpRRQVDKzSWiCwHFIb-ufrOlewBADFVKw7S73c32zrfJrPqEIYN_K4dykANZHNmTVFA/exec"; // Google Apps ScriptのURLをここに設定
         
         // カメラ映像を表示する処理
         const constraints = {
@@ -114,7 +116,7 @@
             })
             .catch(function(error) {
                 console.error("カメラにアクセスできませんでした:", error);
-                document.getElementById('result').innerText = "カメラのアクセスに失敗しました: " + error.message;
+                resultElement.innerText = "カメラのアクセスに失敗しました: " + error.message;
             });
 
         // QuaggaJSを使ってバーコードを読み取る処理
@@ -145,13 +147,40 @@
             Quagga.start(); // QuaggaJSによるバーコード読み取りを開始
         });
 
+        // 重複バーコードの検出を防ぐためのフラグ
+        let lastDetectedCode = null;
+
         // バーコードが検出された時の処理
         Quagga.onDetected(function(data) {
             const code = data.codeResult.code;
-            document.getElementById('result').innerText = `検出されたバーコード: ${code}`;
+
+            // 直前に同じバーコードを読み取った場合は無視
+            if (code === lastDetectedCode) {
+                return;
+            }
+
+            // 新しいバーコードを読み取った場合
+            lastDetectedCode = code;
+            resultElement.innerText = `検出されたバーコード: ${code}`;
 
             // ビープ音を再生
             beepSound.play();
+
+            // 読み取ったバーコードをGoogleスプレッドシートに送信
+            fetch(spreadsheetUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ barcode: code })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("スプレッドシートに送信成功:", data);
+            })
+            .catch(error => {
+                console.error("スプレッドシートへの送信に失敗:", error);
+            });
 
             // 読み取り成功のアニメーション（背景色のフラッシュ）
             document.body.classList.add('flash');
@@ -159,8 +188,10 @@
                 document.body.classList.remove('flash');
             }, 500); // 0.5秒間フラッシュ
 
-            // Quaggaを停止（1回だけ読み取る場合）
-            Quagga.stop();
+            // 少し遅らせて次のバーコードを読み取る準備をする
+            setTimeout(() => {
+                lastDetectedCode = null; // 次のバーコードを検出できるようにリセット
+            }, 1000); // 1秒の待機時間を設ける
         });
     </script>
 
