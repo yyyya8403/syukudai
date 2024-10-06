@@ -3,48 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>バーコード読み取り</title>
+    <title>バーコードスキャナー</title>
     <script src="https://unpkg.com/quagga@0.12.1/dist/quagga.min.js"></script>
     <style>
-        body {
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
         }
 
         #video-container {
             position: relative;
             width: 100%;
-            max-width: 600px;
-            margin: 0 auto;
+            height: 100%;
+            overflow: hidden;
         }
 
         video {
             width: 100%;
-            height: auto;
+            height: 100%;
+            object-fit: cover;
         }
 
-        /* 読み取り枠のスタイル */
+        /* 読み取りガイド（中央の枠線） */
         #overlay {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            border: 4px dashed red;
+            border: 4px solid rgba(255, 0, 0, 0.7);
             box-sizing: border-box;
-            width: 70%; /* 読み取り枠を小さくして精度を上げる */
-            height: 40%;
+            width: 80%;
+            height: 30%;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
         }
 
         #result {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
             text-align: center;
-            margin-top: 20px;
-            font-size: 20px;
+            font-size: 24px;
             font-weight: bold;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
         }
 
         /* 読み取り成功時のアニメーション */
         body.flash {
             background-color: #4CAF50; /* 成功時の色 */
             transition: background-color 0.5s ease;
+        }
+
+        /* 読み取りガイド用のUIをモダンに */
+        #instructions {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            text-align: center;
+            font-size: 18px;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+        }
+
+        #instructions span {
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px 20px;
+            border-radius: 8px;
         }
     </style>
 </head>
@@ -54,8 +85,11 @@
         <video id="video" autoplay playsinline></video>
         <!-- 読み取り枠を表示 -->
         <div id="overlay"></div>
+        <!-- 読み取りガイドテキスト -->
+        <div id="instructions"><span>バーコードを枠の中に合わせてください</span></div>
+        <!-- 読み取り結果表示 -->
+        <div id="result">バーコードをスキャンしてください</div>
     </div>
-    <div id="result">バーコードをスキャンしてください</div>
 
     <!-- 読み取り音 -->
     <audio id="beep" src="https://www.soundjay.com/button/beep-07.wav"></audio>
@@ -67,8 +101,8 @@
         // カメラ映像を表示する処理
         const constraints = {
             video: {
-                width: { ideal: 1280 }, // カメラ解像度を高める
-                height: { ideal: 720 }, // 解像度を720pに設定
+                width: { ideal: 1280 }, // カメラ解像度
+                height: { ideal: 720 },
                 facingMode: "environment" // リアカメラを使用
             }
         };
