@@ -1,0 +1,79 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+}
+
+#video-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* 読み取りガイド（中央の枠線） */
+#overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: 4px solid rgba(255, 0, 0, 0.7);
+    box-sizing: border-box;
+    width: 80%;
+    height: 30%;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+}
+
+/* バウンディングボックス */
+#bounding-box {
+    position: absolute;
+    border: 2px solid lime;
+    background-color: rgba(0, 255, 0, 0.3); /* 背景を薄緑に */
+    display: none; /* 初期状態では非表示 */
+}
+
+#result {
+    position: absolute;
+    bottom: 20px;
+    width: 100%;
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+/* 読み取り成功時のアニメーション */
+body.flash {
+    background-color: #4CAF50; /* 成功時の色 */
+    transition: background-color 0.5s ease;
+}
+
+/* 読み取りガイド用のUIをモダンに */
+#instructions {
+    position: absolute;
+    top: 20px;
+    width: 100%;
+    text-align: center;
+    font-size: 18px;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+#instructions span {
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 10px 20px;
+    border-radius: 8px;
+}
