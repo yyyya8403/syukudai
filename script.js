@@ -5,7 +5,7 @@ const overlay = document.getElementById('overlay');
 const boundingBoxElement = document.getElementById('bounding-box');
 
 // Google Apps ScriptのURLをここに設定
-const spreadsheetUrl = "https://script.google.com/macros/s/AKfycbwTAboL5DzyEHi8tBxpRsJMS4dKMnSVYhGoYQ9ZTp2-Zciofimyo8tCkxDdag7hQo0mPQ/dev";
+const spreadsheetUrl = "https://script.google.com/macros/s/AKfycbxuSY4b6xF_SXHCiTKjYNoWx8Jh0e_sgJSg-eBAFSVTbk5w67OS9oTrxSHzurFr6e-sJg/exec";
 
 // カメラ映像を表示する処理
 const constraints = {
@@ -89,21 +89,24 @@ Quagga.onDetected(function(data) {
     // ビープ音を再生
     beepSound.play();
 
-    // 読み取ったバーコードをGoogleスプレッドシートに送信
-    fetch(spreadsheetUrl, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json"
-		},
-		body: JSON.stringify({ barcode: code })
-	})
-	.then(response => response.json())
-	.then(data => {
-		console.log("スプレッドシートに送信成功:", data);
-	})
-	.catch(error => {
-		console.error("スプレッドシートへの送信に失敗:", error);
-	});
+   // 読み取ったバーコードをGoogleスプレッドシートに送信
+   fetch(spreadsheetUrl, {
+    redirect: "follow",
+    method: "POST",
+    headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+    },
+    body: JSON.stringify({ barcode: code })
+})
+.then(response => response.json())
+.then(data => {
+    console.log("スプレッドシートに送信成功:", data);
+})
+.catch(error => {
+    console.error("スプレッドシートへの送信に失敗:", error);
+});
+
+
 
 
     // 読み取り成功のアニメーション（背景色のフラッシュ）
