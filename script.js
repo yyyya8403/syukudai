@@ -5,7 +5,7 @@ const overlay = document.getElementById('overlay');
 const boundingBoxElement = document.getElementById('bounding-box');
 
 // Google Apps ScriptのURLをここに設定
-const spreadsheetUrl = "https://script.google.com/macros/s/AKfycbxniqV-SSqr-r5pxbG4WnidjKmY8cA0bE4vqglBhIL2wO4pQ9fw3VQLxd2dcFJxVPEKrQ/exec";
+const spreadsheetUrl = "https://script.google.com/macros/s/AKfycbyzkBj2Jd_7jka0Y-d-WmpluG_5S5DSRfXKwmgm8jcLm7jC3JMAGZletBazk_8VoXgk-Q/exec";
 
 // カメラ映像を表示する処理
 const constraints = {
