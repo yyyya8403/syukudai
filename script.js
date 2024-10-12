@@ -87,20 +87,7 @@ Quagga.onDetected(function(data) {
     beepSound.play();
 
    // 読み取ったバーコードをGoogleスプレッドシートに送信
-fetch('https://your-glitch-project.glitch.me/proxy', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify({ barcode: '1234567890' }) // 送信するバーコードデータ
-})
-.then(response => response.json())
-.then(data => {
-  console.log('Success:', data);
-})
-.catch(error => {
-  console.error('Fetchエラー:', error);
-});/proxy', {
+fetch('https://thundering-polyester-pest.glitch.me', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
@@ -114,6 +101,7 @@ fetch('https://your-glitch-project.glitch.me/proxy', {
 .catch(error => {
   console.error('Fetchエラー:', error);
 });
+
 
 
     // 読み取り成功のアニメーション（背景色のフラッシュ）
