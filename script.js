@@ -90,22 +90,22 @@ Quagga.onDetected(function(data) {
     beepSound.play();
 
    // 読み取ったバーコードをGoogleスプレッドシートに送信
-   fetch(spreadsheetUrl, {
-    redirect: "follow",
-    method: "POST",
-    headers: {
-        "Content-Type": "text/plain;charset=utf-8"
-    },
-    body: JSON.stringify({ barcode: code })
+fetch('https://proxy-syukudai.vercel.app/api/proxy', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    barcode: '12345ABC' // 送信するバーコードデータ
+  })
 })
 .then(response => response.json())
 .then(data => {
-    console.log("スプレッドシートに送信成功:", data);
+  console.log('Success:', data);
 })
 .catch(error => {
-    console.error("スプレッドシートへの送信に失敗:", error);
+  console.error('Error:', error);
 });
-
 
 
 
