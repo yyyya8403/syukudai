@@ -91,12 +91,13 @@ Quagga.onDetected(function(data) {
 
    // 読み取ったバーコードをGoogleスプレッドシートに送信
 fetch('https://proxy-syukudai.vercel.app/api/proxy', {
+  redirect: "follow",
   method: 'POST',
   headers: {
-    'Content-Type': 'application/json',
+    'Content-Type': 'text/plain;charset=utf-8',
   },
   body: JSON.stringify({
-    barcode: '12345ABC' // 送信するバーコードデータ
+     barcode: code // 送信するバーコードデータ
   })
 })
 .then(response => response.json())
