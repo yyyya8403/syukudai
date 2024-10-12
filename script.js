@@ -91,18 +91,23 @@ fetch('https://proxy-syukudai.vercel.app/api/proxy', {
   redirect: "follow",
   method: 'POST',
   headers: {
-    'Content-Type': 'text/plain;charset=utf-8',
+    'Content-Type': 'application/json', // 正しいContent-Type
   },
   body: JSON.stringify({
      barcode: code // 送信するバーコードデータ
   })
 })
-.then(response => response.json())
+.then(response => {
+  if (!response.ok) {
+    throw new Error(`HTTPエラー! ステータス: ${response.status}`);
+  }
+  return response.json(); // 成功時にJSONレスポンスを取得
+})
 .then(data => {
   console.log('Success:', data);
 })
 .catch(error => {
-  console.error('Error:', error);
+  console.error('Fetchエラー:', error);
 });
 
 
@@ -122,5 +127,5 @@ fetch('https://proxy-syukudai.vercel.app/api/proxy', {
     // 次のバーコードを読み取る準備をする
     setTimeout(() => {
         lastDetectedCode = null; // 次のバーコードを検出できるようにリセット
-    }, 1000);
+    }, 3000);
 });
