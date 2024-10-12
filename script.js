@@ -87,29 +87,33 @@ Quagga.onDetected(function(data) {
     beepSound.play();
 
    // 読み取ったバーコードをGoogleスプレッドシートに送信
-fetch('https://proxy-syukudai.vercel.app/api/proxy', {
-  redirect: "follow",
+fetch('https://your-glitch-project.glitch.me/proxy', {
   method: 'POST',
   headers: {
-    'Content-Type': 'application/json', // 正しいContent-Type
+    'Content-Type': 'application/json',
   },
-  body: JSON.stringify({
-     barcode: code // 送信するバーコードデータ
-  })
+  body: JSON.stringify({ barcode: '1234567890' }) // 送信するバーコードデータ
 })
-.then(response => {
-  if (!response.ok) {
-    throw new Error(`HTTPエラー! ステータス: ${response.status}`);
-  }
-  return response.json(); // 成功時にJSONレスポンスを取得
+.then(response => response.json())
+.then(data => {
+  console.log('Success:', data);
 })
+.catch(error => {
+  console.error('Fetchエラー:', error);
+});/proxy', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({ barcode: '1234567890' }) // 送信するバーコードデータ
+})
+.then(response => response.json())
 .then(data => {
   console.log('Success:', data);
 })
 .catch(error => {
   console.error('Fetchエラー:', error);
 });
-
 
 
     // 読み取り成功のアニメーション（背景色のフラッシュ）
