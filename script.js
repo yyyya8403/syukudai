@@ -4,7 +4,6 @@ const resultElement = document.getElementById('result');
 const overlay = document.getElementById('overlay');
 const boundingBoxElement = document.getElementById('bounding-box');
 
-const spreadsheetUrl = "https://script.google.com/macros/s/AKfycbyjmvRwBjy0FZQCqZiRdLZ9TOliZHPOh_TWrO8Sj9PS_rkyQBbtTLLUHtqtGf9Qzv0M/exec"; // 正しいURLを設定
 // カメラ映像を表示する処理
 const constraints = {
     video: {
@@ -86,9 +85,7 @@ Quagga.onDetected(function(data) {
 
     // ビープ音を再生
     beepSound.play();
-
-const spreadsheetUrl = "https://script.google.com/macros/s/AKfycbw1TworOSRmZtlSd681URfxRyAyoyEwudNGDOf-E9BpIhB5Xr2OY2otgoqq0cEkBsA/exec"; // デプロイしたURLをここに設定
-
+    
 function sendBarcode(barcode) {
   const xhr = new XMLHttpRequest();
   xhr.open("POST", spreadsheetUrl, true); // 非同期リクエスト
