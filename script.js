@@ -4,6 +4,8 @@ const resultElement = document.getElementById('result');
 const overlay = document.getElementById('overlay');
 const boundingBoxElement = document.getElementById('bounding-box');
 
+const spreadsheetUrl = "https://script.google.com/macros/s/AKfycbw1TworOSRmZtlSd681URfxRyAyoyEwudNGDOf-E9BpIhB5Xr2OY2otgoqq0cEkBsA/exec"; // デプロイしたURLをここに設定
+
 // カメラ映像を表示する処理
 const constraints = {
     video: {
