@@ -4,7 +4,7 @@ const resultElement = document.getElementById('result');
 const overlay = document.getElementById('overlay');
 const boundingBoxElement = document.getElementById('bounding-box');
 
-const spreadsheetUrl = "https://script.google.com/macros/s/AKfycbx0eE4_XE4K9VzGzf-aOpVOeGAYSogyle_IwEl4H-4UgkDWOHgtrsSuedCIGHGIM6ug/exec"; // デプロイしたURLをここに設定
+const spreadsheetUrl = "https://script.google.com/macros/s/AKfycbwKHDeDREhoT6ABo0D6MirpHosuKz0fJlboXned3NJBI-JqUXSp-0BSt5xj5jVd-gWb/exec"; // デプロイしたURLをここに設定
 
 // カメラ映像を表示する処理
 const constraints = {
