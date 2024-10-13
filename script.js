@@ -4,6 +4,7 @@ const resultElement = document.getElementById('result');
 const overlay = document.getElementById('overlay');
 const boundingBoxElement = document.getElementById('bounding-box');
 
+const spreadsheetUrl = "https://script.google.com/macros/s/AKfycbyjmvRwBjy0FZQCqZiRdLZ9TOliZHPOh_TWrO8Sj9PS_rkyQBbtTLLUHtqtGf9Qzv0M/exec"; // 正しいURLを設定
 // カメラ映像を表示する処理
 const constraints = {
     video: {
@@ -86,22 +87,26 @@ Quagga.onDetected(function(data) {
     // ビープ音を再生
     beepSound.play();
 
-fetch('https://script.google.com/macros/s/AKfycbwRVYHudKUaL9gcHiIRb7UVee349bu6bSCRuyiYBzNVSZIjOKS1Q38reU2nHm6P8V0I/exec', {
-  redirect: "follow",
-  method: 'POST',
-  headers: {
-    'Content-Type': 'text/plain;charset=utf-8',
-  },
-  body: JSON.stringify({ barcode: code })
-})
-.then(response => response.json())
-.then(data => {
-  console.log('Success:', data);
-})
-.catch(error => {
-  console.error('Fetchエラー:', error);
-});
+// バーコードデータを送信する関数
+function sendBarcode(barcode) {
+  fetch(spreadsheetUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ barcode: barcode })
+  })
+  .then(response => response.json())
+  .then(data => {
+    console.log("スプレッドシートに送信成功:", data);
+  })
+  .catch(error => {
+    console.error("スプレッドシートへの送信に失敗:", error);
+  });
+}
 
+// 例としてバーコードを送信
+sendBarcode("123456789");
 
 
 
