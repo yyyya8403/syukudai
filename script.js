@@ -87,7 +87,7 @@ Quagga.onDetected(function(data) {
     beepSound.play();
 
    // 読み取ったバーコードをGoogleスプレッドシートに送信
-fetch('https://thundering-polyester-pest.glitch.me', {
+fetch('https://thundering-polyester-pest.glitch.me/proxy', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
