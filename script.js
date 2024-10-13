@@ -87,9 +87,10 @@ Quagga.onDetected(function(data) {
     beepSound.play();
 
 fetch('https://script.google.com/macros/s/AKfycbwRVYHudKUaL9gcHiIRb7UVee349bu6bSCRuyiYBzNVSZIjOKS1Q38reU2nHm6P8V0I/exec', {
+  redirect: "follow",
   method: 'POST',
   headers: {
-    'Content-Type': 'application/json',
+    'Content-Type': 'text/plain;charset=utf-8',
   },
   body: JSON.stringify({ barcode: code })
 })
