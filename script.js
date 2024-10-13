@@ -4,7 +4,6 @@ const resultElement = document.getElementById('result');
 const overlay = document.getElementById('overlay');
 const boundingBoxElement = document.getElementById('bounding-box');
 
-const spreadsheetUrl = "https://script.google.com/macros/s/AKfycbwKHDeDREhoT6ABo0D6MirpHosuKz0fJlboXned3NJBI-JqUXSp-0BSt5xj5jVd-gWb/exec"; // デプロイしたURLをここに設定
 
 // カメラ映像を表示する処理
 const constraints = {
@@ -88,28 +87,31 @@ Quagga.onDetected(function(data) {
     // ビープ音を再生
     beepSound.play();
     
-const spreadsheetUrl = "https://script.google.com/macros/s/AKfycbwKHDeDREhoT6ABo0D6MirpHosuKz0fJlboXned3NJBI-JqUXSp-0BSt5xj5jVd-gWb/exec"; // デプロイURLを設定
+const spreadsheetUrl = "https://script.google.com/macros/s/AKfycbwKHDeDREhoT6ABo0D6MirpHosuKz0fJlboXned3NJBI-JqUXSp-0BSt5xj5jVd-gWb/exec"; // デプロイしたURLをここに設定
 
 function sendBarcode(barcode) {
-  fetch(spreadsheetUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ barcode: barcode })
-  })
-  .then(response => {
-    if (!response.ok) {
-      throw new Error(`HTTPエラー: ${response.status}`);
+  const xhr = new XMLHttpRequest(); // XHRオブジェクトを作成
+
+  // リクエストを初期化（非同期）
+  xhr.open("POST", spreadsheetUrl, true);
+  xhr.setRequestHeader("Content-Type", "application/json");
+
+  // リクエストが完了したときの処理
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState === 4) { // リクエストが完了したとき
+      if (xhr.status === 200) { // ステータスが200の場合（成功）
+        console.log("スプレッドシートに送信成功:", xhr.responseText);
+      } else {
+        console.error("スプレッドシートへの送信に失敗:", xhr.statusText);
+      }
     }
-    return response.json();
-  })
-  .then(data => {
-    console.log("スプレッドシートに送信成功:", data);
-  })
-  .catch(error => {
-    console.error("スプレッドシートへの送信に失敗:", error);
-  });
+  };
+
+  // 送信するデータをJSON形式に変換
+  const data = JSON.stringify({ barcode: barcode });
+
+  // リクエストを送信
+  xhr.send(data);
 }
 
 // テスト: バーコードを送信
