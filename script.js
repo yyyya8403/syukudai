@@ -86,26 +86,21 @@ Quagga.onDetected(function(data) {
     // ビープ音を再生
     beepSound.play();
 
-fetch('https://thundering-polyester-pest.glitch.me/proxy', {
-  redirect: 'follow',
+fetch('https://script.google.com/macros/s/AKfycbwRVYHudKUaL9gcHiIRb7UVee349bu6bSCRuyiYBzNVSZIjOKS1Q38reU2nHm6P8V0I/exec', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
   },
-  body: JSON.stringify({ barcode: '1234567890' }) // 任意のバーコードデータ
+  body: JSON.stringify({ barcode: code })
 })
-.then(response => {
-  if (!response.ok) {
-    throw new Error(`HTTPエラー! ステータス: ${response.status}`);
-  }
-  return response.json();
-})
+.then(response => response.json())
 .then(data => {
   console.log('Success:', data);
 })
 .catch(error => {
   console.error('Fetchエラー:', error);
 });
+
 
 
 
