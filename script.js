@@ -88,27 +88,33 @@ Quagga.onDetected(function(data) {
     // ビープ音を再生
     beepSound.play();
     
+const spreadsheetUrl = "https://script.google.com/macros/s/AKfycbwKHDeDREhoT6ABo0D6MirpHosuKz0fJlboXned3NJBI-JqUXSp-0BSt5xj5jVd-gWb/exec"; // デプロイURLを設定
+
 function sendBarcode(barcode) {
-  const xhr = new XMLHttpRequest();
-  xhr.open("POST", spreadsheetUrl, true); // 非同期リクエスト
-  xhr.setRequestHeader("Content-Type", "application/json");
-
-  xhr.onreadystatechange = function() {
-    if (xhr.readyState === 4) { // 完了したとき
-      if (xhr.status === 200) {
-        console.log("スプレッドシートに送信成功:", xhr.responseText);
-      } else {
-        console.error("スプレッドシートへの送信に失敗:", xhr.statusText);
-      }
+  fetch(spreadsheetUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ barcode: barcode })
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTPエラー: ${response.status}`);
     }
-  };
-
-  const data = JSON.stringify({ barcode: barcode });
-  xhr.send(data);
+    return response.json();
+  })
+  .then(data => {
+    console.log("スプレッドシートに送信成功:", data);
+  })
+  .catch(error => {
+    console.error("スプレッドシートへの送信に失敗:", error);
+  });
 }
 
 // テスト: バーコードを送信
 sendBarcode("123456789");
+
 
 
     // 読み取り成功のアニメーション（背景色のフラッシュ）
