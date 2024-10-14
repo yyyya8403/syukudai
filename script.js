@@ -87,7 +87,7 @@ Quagga.onDetected(function(data) {
     // ビープ音を再生
     beepSound.play();
     
-const spreadsheetUrl = "https://script.google.com/macros/s/AKfycbxsr_JGZVd3U4F7XSy0cnZFExcgFByRXK4A8FL5XE3n6A0t24_pLV-BOxBqhZZYxxTv/exec"; // デプロイしたURLをここに設定
+const spreadsheetUrl = "https://script.google.com/macros/s/AKfycbxD2tImwIAp_xi_fQM6joyy7Ryii6H8oIqNwmTigIRMQ9wK_ZYNlOeZ3DMRad0RbDxk/exec"; // デプロイしたURLをここに設定
 
 function sendBarcode(barcode) {
   const xhr = new XMLHttpRequest(); // XHRオブジェクトを作成
