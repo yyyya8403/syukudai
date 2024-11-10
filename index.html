@@ -3,9 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>バーコードスキャナー</title>
+    <title>天気予報</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin: 20px 0;
+        }
+        #region-select {
+            display: block;
+            margin: 20px auto;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background: #fff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            width: 80%;
+            max-width: 300px;
+            text-align: center;
+            appearance: none;
+            background-image: url('https://example.com/icons/down-arrow.svg');
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 20px;
+        }
+        #region-select:hover {
+            border-color: #888;
+        }
+        #weather {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px;
+        }
+        .forecast {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 250px;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+        .forecast:hover {
+            transform: scale(1.05);
+        }
+        .forecast img {
+            width: 80px;
+            height: 80px;
+            margin: 10px auto;
+        }
+        .forecast h3 {
+            margin: 10px 0;
+            font-size: 18px;
+            color: #555;
+        }
+        .forecast p {
+            font-size: 16px;
+            color: #666;
+        }
+        .forecast a {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            height: 100%;
+        }
+        .sunny {
+            background: linear-gradient(135deg, #ffeb3b, #ff9800);
+            color: #333;
+        }
+        .cloudy {
+            background: linear-gradient(135deg, #cfd8dc, #90a4ae);
+            color: #333;
+        }
+        .rainy {
+            background: linear-gradient(135deg, #bbdefb, #2196f3);
+            color: #fff;
+        }
+        .snowy {
+            background: linear-gradient(135deg, #e3f2fd, #90caf9);
+            color: #333;
+        }
+    </style>
 </head>
 <body>
-    <h1>https://script.google.com/macros/s/AKfycbzhE67CT1YiIy8G8wvnbi87B0LkmgX1o1r35mfnPQRUr5w6Suk0lrO3VHFYkj3-uZgk/exec</h1>
+    <h1>日本の一週間の天気予報</h1>
+    <select id="region-select">
+        <option value="170000">金沢</option>
+        <option value="130000">東京</option>
+        <option value="270000">大阪</option>
+        <option value="400000">九州</option>
+    </select>
+    <div id="weather"></div>
+
+    <h2>https://script.google.com/macros/s/AKfycbzhE67CT1YiIy8G8wvnbi87B0LkmgX1o1r35mfnPQRUr5w6Suk0lrO3VHFYkj3-uZgk/exec</h2>
+
+    <script>
+        const baseUrl = "https://www.jma.go.jp/bosai/forecast/data/forecast/";
+
+        const weatherIcons = {
+            "晴れ": { icon: "https://www.jma.go.jp/bosai/forecast/img/100.svg", className: "sunny" },
+            "くもり": { icon: "https://www.jma.go.jp/bosai/forecast/img/200.svg", className: "cloudy" },
+            "雨": { icon: "https://www.jma.go.jp/bosai/forecast/img/300.svg", className: "rainy" },
+            "雪": { icon: "https://www.jma.go.jp/bosai/forecast/img/400.svg", className: "snowy" },
+            "雷雨": { icon: "https://www.jma.go.jp/bosai/forecast/img/500.svg", className: "rainy" }
+        };
+
+        const regionLinks = {
+            "170000": "https://www.jma.go.jp/bosai/forecast/#area_type=offices&area_code=170000", // 北陸地方リンク
+            "130000": "https://www.jma.go.jp/bosai/forecast/#area_type=offices&area_code=130000", // 東京地方リンク
+            "270000": "https://www.jma.go.jp/bosai/forecast/#area_type=offices&area_code=270000", // 大阪地方リンク
+            "400000": "https://www.jma.go.jp/bosai/forecast/#area_type=offices&area_code=400000"  // 九州北部地方リンク
+        };
+
+        function getWeatherStyle(weather) {
+    // 天気説明の最初の単語を抽出
+    const firstWord = weather.split(/[\s、。]/)[0]; // 空白、読点、句点で分割
+
+    // 最初の単語でスタイルを決定
+    for (const key in weatherIcons) {
+        if (firstWord === key) {
+            return weatherIcons[key];
+        }
+    }
+
+    // デフォルトスタイル（該当しない場合）
+    return { icon: "https://example.com/icons/unknown.png", className: "" };
+}
+
+
+        async function fetchWeatherData(regionCode) {
+            try {
+                const response = await fetch(`${baseUrl}${regionCode}.json`);
+                if (!response.ok) {
+                    throw new Error("データの取得に失敗しました");
+                }
+                const data = await response.json();
+
+                const forecasts = data[0].timeSeries[0];
+                const dates = forecasts.timeDefines;
+                const weatherCodes = forecasts.areas[0].weathers;
+                const areaName = data[0].publishingOffice;
+
+                const weatherDiv = document.getElementById("weather");
+                weatherDiv.innerHTML = `<h2></h2>`;
+
+                dates.forEach((date, index) => {
+                    const weatherText = weatherCodes[index];
+                    const { icon, className } = getWeatherStyle(weatherText);
+
+                    const forecastDiv = document.createElement("div");
+                    forecastDiv.className = `forecast ${className}`;
+                    forecastDiv.innerHTML = `
+                        <a href="${regionLinks[regionCode]}" target="_blank">
+                            <img src="${icon}" alt="${weatherText}">
+                            <h3>${new Date(date).toLocaleDateString("ja-JP", {
+                                weekday: "short",
+                                year: "numeric",
+                                month: "2-digit",
+                                day: "2-digit"
+                            })}</h3>
+                            <p>${weatherText}</p>
+                        </a>
+                    `;
+                    weatherDiv.appendChild(forecastDiv);
+                });
+            } catch (error) {
+                console.error(error);
+                document.getElementById("weather").textContent = "天気予報を取得できませんでした。";
+            }
+        }
+
+        document.getElementById("region-select").addEventListener("change", (event) => {
+            const regionCode = event.target.value;
+            fetchWeatherData(regionCode);
+        });
+
+        // 初期表示
+        fetchWeatherData("170000");
+    </script>
 </body>
 </html>
